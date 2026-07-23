@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Punters Club Puntoff</title>
-  <script src="https://iangream.github.io/Punters Club Puntoff.xlsx"></script>
-//  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg: #0f1720;
@@ -221,13 +220,13 @@
       <h1>🏇 Punters Club Puntoff</h1>
       <p class="subtitle">Season leaderboard and round-by-round betting log</p>
     </div>
-    <div class="upload-box">
-      <span class="status-dot" id="status-dot"></span>
-      <div>
-        <div id="file-status">Showing data from the last uploaded file</div>
-        <input type="file" id="file-input" accept=".xlsx,.xls" />
-      </div>
-    </div>
+   // <div class="upload-box">
+   //   <span class="status-dot" id="status-dot"></span>
+   //   <div>
+   //     <div id="file-status">Showing data from the last uploaded file</div>
+   //     <input type="file" id="file-input" accept=".xlsx,.xls" />
+   //   </div>
+   // </div>
   </header>
 
   <div class="error-banner" id="error-banner"></div>
@@ -426,21 +425,46 @@ function renderWorkbook(workbook, sourceLabel) {
     document.getElementById("status-dot").className = "status-dot stale";
   }
 }
+// Automatically load the workbook from the same folder as index.html
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("file-status").textContent =
+    'Loading "Punters Club Puntoff.xlsx"...';
 
-document.getElementById("file-input").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById("file-status").textContent = "Loading " + file.name + "…";
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    const data = new Uint8Array(ev.target.result);
-    const workbook = XLSX.read(data, { type: "array" });
-    const stamp = new Date().toLocaleString();
-    renderWorkbook(workbook, `Loaded "${file.name}" — ${stamp}`);
-  };
-  reader.onerror = () => showError("Couldn't read that file — please try again.");
-  reader.readAsArrayBuffer(file);
+  fetch("Punters Club Puntoff.xlsx")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      return response.arrayBuffer();
+    })
+    .then(data => {
+      const workbook = XLSX.read(new Uint8Array(data), { type: "array" });
+      const stamp = new Date().toLocaleString();
+      renderWorkbook(
+        workbook,
+        `Loaded "Punters Club Puntoff.xlsx" — ${stamp}`
+      );
+    })
+    .catch(err => {
+      showError(
+        `Couldn't load "Punters Club Puntoff.xlsx". Make sure it is in the same folder as index.html. (${err.message})`
+      );
+    });
 });
+//document.getElementById("file-input").addEventListener("change", (e) => {
+//  const file = e.target.files[0];
+//  if (!file) return;
+//  document.getElementById("file-status").textContent = "Loading " + file.name + "…";
+//  const reader = new FileReader();
+// reader.onload = (ev) => {
+//    const data = new Uint8Array(ev.target.result);
+//    const workbook = XLSX.read(data, { type: "array" });
+//    const stamp = new Date().toLocaleString();
+//    renderWorkbook(workbook, `Loaded "${file.name}" — ${stamp}`);
+//  };
+//  reader.onerror = () => showError("Couldn't read that file — please try again.");
+//  reader.readAsArrayBuffer(file);
+//});
 
 // Default data embedded from the workbook provided when this page was built.
 // Re-upload an updated "Punters Club Puntoff.xlsx" above at any time to refresh.
