@@ -276,7 +276,7 @@ function findRowIndex(rows, colIdx, predicate, fromRow) {
 
 function parseSummarySheet(rows) {
   // Header row has "Punter" in col 0
-  const headerIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.toLowerCase().is("punter"));
+  const headerIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.toLowerCase() === "punter");
   if (headerIdx === -1) throw new Error('Could not find the "Punter" header in the Summary sheet.');
   const headerRow = rows[headerIdx];
 
@@ -301,9 +301,9 @@ function parseRoundsSheet(rows) {
   let upToRound = null;
   if (upToIdx !== -1) upToRound = rows[upToIdx][1];
 
-  // Header row has "Punters" in col 0 (exact match, not just containing the word,
+  // Header row has "Punter" in col 0 (exact match, not just containing the word,
   // since the sheet's title row also contains "Punters") and "Bet per Round" in col 1
-  let headerIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.trim().toLowerCase() === "punters");
+  let headerIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.trim().toLowerCase() === "punter");
   if (headerIdx === -1) {
     headerIdx = findRowIndex(rows, 1, v => typeof v === "string" && v.toLowerCase().includes("bet per round"));
   }
