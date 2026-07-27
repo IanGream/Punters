@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Punters Club Puntoff</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -17,6 +18,7 @@
     --neg: #ff6b6b;
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0;
     padding: 40px 20px;
@@ -86,6 +88,25 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .card.highlight {
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 0 1px rgba(61, 220, 151, 0.15), 0 12px 32px rgba(0,0,0,0.35);
+  }
+  h2.headline {
+    font-size: 22px;
+  }
+  h2.headline::before {
+    width: 5px;
+    height: 22px;
+  }
+  h2.secondary {
+    color: var(--text-dim);
+    font-size: 15px;
+  }
+  h2.secondary::before {
+    background: var(--text-dim);
+    opacity: 0.5;
   }
   table {
     width: 100%;
@@ -214,6 +235,79 @@
     margin-bottom: 20px;
     display: none;
   }
+  .table-scroll {
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll-hint {
+    display: none;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: -8px 0 12px 2px;
+  }
+
+  @media (max-width: 640px) {
+    body { padding: 24px 12px; }
+    .wrap { max-width: 100%; }
+    header.page-head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 22px; }
+    .subtitle { font-size: 13px; }
+    .upload-box { width: 100%; }
+
+    h2 { margin: 30px 0 12px; font-size: 15px; }
+    h2.headline { font-size: 19px; margin-top: 4px; }
+
+    th, td { padding: 8px 10px; font-size: 13px; }
+
+    .scroll-hint { display: block; }
+
+    /* Leaderboard becomes a stack of labeled cards, since this is the highlight table */
+    #leaderboard-table thead { display: none; }
+    #leaderboard-table, #leaderboard-table tbody,
+    #leaderboard-table tr, #leaderboard-table td {
+      display: block;
+      width: 100%;
+    }
+    #leaderboard-table tr {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    #leaderboard-table tr.total-row {
+      border-top: 2px solid var(--border);
+      border-bottom: none;
+    }
+    #leaderboard-table td {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 3px 0;
+      text-align: left;
+      white-space: normal;
+    }
+    #leaderboard-table td::before {
+      content: attr(data-label);
+      color: var(--text-dim);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    #leaderboard-table td.name-cell {
+      font-size: 17px;
+      padding-bottom: 10px;
+      margin-bottom: 4px;
+      border-bottom: 1px dashed var(--border);
+    }
+    #leaderboard-table td.name-cell::before { content: none; }
+    #leaderboard-table td.pct-pos,
+    #leaderboard-table td.pct-neg {
+      font-size: 19px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -233,8 +327,8 @@
 
   <div class="error-banner" id="error-banner"></div>
 
-  <h2>Leaderboard</h2>
-  <div class="card table-scroll">
+  <h2 class="headline">🏆 Leaderboard</h2>
+  <div class="card table-scroll highlight">
     <table id="leaderboard-table">
       <thead>
         <tr id="leaderboard-head"></tr>
@@ -243,8 +337,9 @@
     </table>
   </div>
 
-  <h2>Rounds</h2>
+  <h2 class="secondary">Rounds</h2>
   <p class="rounds-note" id="rounds-note"></p>
+  <p class="scroll-hint">↔ Swipe to see all rounds</p>
   <div class="card table-scroll">
     <table id="rounds-table">
       <thead>
@@ -358,10 +453,10 @@ function renderLeaderboard(summary) {
     const pctClass = pctVal >= 1 ? "pct-pos" : "pct-neg";
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="name-cell"><span class="rank ${rankClass(i)}">${i + 1}</span>${p.name}</td>
-      <td>${money(p.bet)}</td>
-      <td>${money(p.ret)}</td>
-      <td class="${pctClass}">${pct(p.pct)}</td>
+      <td class="name-cell" data-label="Punter"><span class="rank ${rankClass(i)}">${i + 1}</span>${p.name}</td>
+      <td data-label="Total Bet">${money(p.bet)}</td>
+      <td data-label="Total Return">${money(p.ret)}</td>
+      <td class="${pctClass}" data-label="% Return">${pct(p.pct)}</td>
     `;
     body.appendChild(tr);
   });
@@ -370,7 +465,7 @@ function renderLeaderboard(summary) {
     const t = summary.totals;
     const tr = document.createElement("tr");
     tr.className = "total-row";
-    tr.innerHTML = `<td>Total</td><td>${money(t.bet)}</td><td>${money(t.ret)}</td><td>${pct(t.pct)}</td>`;
+    tr.innerHTML = `<td data-label="Punter">Total</td><td data-label="Total Bet">${money(t.bet)}</td><td data-label="Total Return">${money(t.ret)}</td><td data-label="% Return">${pct(t.pct)}</td>`;
     body.appendChild(tr);
   }
 }
