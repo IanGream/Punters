@@ -182,9 +182,14 @@
     color: var(--text);
     border-top: 2px solid var(--border);
   }
+  .total-row td.pct-pos { color: var(--pos); }
+  .total-row td.pct-neg { color: var(--neg); }
   #summary-table th:first-child,
   #summary-table td:first-child {
     text-align: right;
+  }
+  #summary-table thead th {
+    border-bottom: none;
   }
   #summary-table .total-row td {
     background: transparent;
