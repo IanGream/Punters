@@ -121,12 +121,15 @@
   #rounds-table td {
     min-width: 90px;
   }
-  #leaderboard-table {
+  #leaderboard-table,
+  #summary-table {
     width: auto;
     min-width: 0;
   }
   #leaderboard-table th,
-  #leaderboard-table td {
+  #leaderboard-table td,
+  #summary-table th,
+  #summary-table td {
     padding: 10px 12px;
   }
   th, td {
@@ -265,22 +268,28 @@
 
     .scroll-hint { display: block; }
 
-    /* Leaderboard becomes a stack of labeled cards, since this is the highlight table */
-    #leaderboard-table thead { display: none; }
+    /* Leaderboard and Summary become a stack of labeled cards, since these are the highlight tables */
+    #leaderboard-table thead,
+    #summary-table thead { display: none; }
     #leaderboard-table, #leaderboard-table tbody,
-    #leaderboard-table tr, #leaderboard-table td {
+    #leaderboard-table tr, #leaderboard-table td,
+    #summary-table, #summary-table tbody,
+    #summary-table tr, #summary-table td {
       display: block;
       width: 100%;
     }
-    #leaderboard-table tr {
+    #leaderboard-table tr,
+    #summary-table tr {
       padding: 14px 16px 10px;
       border-bottom: 1px solid var(--border);
     }
-    #leaderboard-table tr.total-row {
+    #leaderboard-table tr.total-row,
+    #summary-table tr.total-row {
       border-top: 2px solid var(--border);
       border-bottom: none;
     }
-    #leaderboard-table td {
+    #leaderboard-table td,
+    #summary-table td {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
@@ -288,7 +297,8 @@
       text-align: left;
       white-space: normal;
     }
-    #leaderboard-table td::before {
+    #leaderboard-table td::before,
+    #summary-table td::before {
       content: attr(data-label);
       color: var(--text-dim);
       font-size: 11px;
@@ -296,15 +306,19 @@
       letter-spacing: 0.5px;
       font-weight: 600;
     }
-    #leaderboard-table td.name-cell {
+    #leaderboard-table td.name-cell,
+    #summary-table td.name-cell {
       font-size: 17px;
       padding-bottom: 10px;
       margin-bottom: 4px;
       border-bottom: 1px dashed var(--border);
     }
-    #leaderboard-table td.name-cell::before { content: none; }
+    #leaderboard-table td.name-cell::before,
+    #summary-table td.name-cell::before { content: none; }
     #leaderboard-table td.pct-pos,
-    #leaderboard-table td.pct-neg {
+    #leaderboard-table td.pct-neg,
+    #summary-table td.pct-pos,
+    #summary-table td.pct-neg {
       font-size: 19px;
     }
   }
@@ -326,6 +340,16 @@
   </header>
 
   <div class="error-banner" id="error-banner"></div>
+
+  <h2 class="headline">📊 Puntoff Summary</h2>
+  <div class="card table-scroll highlight">
+    <table id="summary-table">
+      <thead>
+        <tr id="summary-head"></tr>
+      </thead>
+      <tbody id="summary-body"></tbody>
+    </table>
+  </div>
 
   <h2 class="headline">🏆 Leaderboard</h2>
   <div class="card table-scroll highlight">
@@ -460,6 +484,14 @@ function renderLeaderboard(summary) {
     `;
     body.appendChild(tr);
   });
+}
+
+function renderSummary(summary) {
+  const head = document.getElementById("summary-head");
+  head.innerHTML = `<th>Puntoff</th><th>Total Bet</th><th>Total Return</th><th>% Return</th>`;
+
+  const body = document.getElementById("summary-body");
+  body.innerHTML = "";
 
   if (summary.totals) {
     const t = summary.totals;
@@ -468,7 +500,7 @@ function renderLeaderboard(summary) {
     const tr = document.createElement("tr");
     tr.className = "total-row";
     tr.innerHTML = `
-      <td data-label="Puntoff">Total</td>
+      <td class="name-cell" data-label="Puntoff">Total</td>
       <td data-label="Total Bet">${money(t.bet)}</td>
       <td data-label="Total Return">${money(t.ret)}</td>
       <td class="${tPctClass}" data-label="% Return">${pct(t.pct)}</td>`;
@@ -518,6 +550,7 @@ function renderWorkbook(workbook, sourceLabel) {
     const summary = parseSummarySheet(summaryRows);
     const roundsData = parseRoundsSheet(roundsRows);
 
+    renderSummary(summary);
     renderLeaderboard(summary);
     renderRounds(roundsData);
 
@@ -542,8 +575,17 @@ async function loadFromRepo() {
       throw new Error(`Couldn't fetch "${XLSX_FILENAME}" (HTTP ${response.status})`);
     }
     const buffer = await response.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array" });
-    const stamp = new Date().toLocaleString();
+    const workbook = XLSX.read(new Uint8Array(buffer), { type: "array", cellDates: true });
+
+    // Prefer the workbook's own "last saved" metadata (set by Excel/Sheets when the
+    // file itself was saved) over the HTTP Last-Modified header or the current time,
+    // since that's the true "last saved date" of the file's contents.
+    let savedDate = workbook.Props && (workbook.Props.ModifiedDate || workbook.Props.CreatedDate);
+    if (!savedDate) {
+      const lastModHeader = response.headers.get("Last-Modified");
+      if (lastModHeader) savedDate = new Date(lastModHeader);
+    }
+    const stamp = savedDate ? new Date(savedDate).toLocaleString() : new Date().toLocaleString();
     renderWorkbook(workbook, `Updated ${stamp}`);
   } catch (err) {
     dotEl.className = "status-dot stale";
