@@ -193,6 +193,10 @@
   }
   #summary-table .total-row td {
     background: transparent;
+    border-top: none;
+  }
+  #summary-table tbody tr {
+    border-bottom: none;
   }
   .table-scroll {
     overflow-x: auto;
@@ -281,7 +285,8 @@
     .upload-box { width: 100%; }
 
     h2 { margin: 30px 0 12px; font-size: 15px; }
-    h2.headline { font-size: 19px; margin-top: 4px; }
+    h2.headline { font-size: 19px; margin-top: 1em; }
+    h2.headline:first-of-type { margin-top: 4px; }
 
     th, td { padding: 8px 10px; font-size: 13px; }
 
@@ -348,7 +353,6 @@
   <header class="page-head">
     <div>
       <h1>🏇 Punters Club Puntoff</h1>
-      <p class="subtitle">Season leaderboard and round-by-round betting log</p>
     </div>
     <div class="upload-box">
       <span class="status-dot" id="status-dot"></span>
@@ -383,7 +387,7 @@
   <h2 class="headline">🎯 Rounds</h2>
   <p class="rounds-note" id="rounds-note"></p>
   <p class="scroll-hint">↔ Swipe to see all rounds</p>
-  <div class="card table-scroll">
+  <div class="card table-scroll highlight">
     <table id="rounds-table">
       <thead>
         <tr id="rounds-head"></tr>
