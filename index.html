@@ -507,6 +507,8 @@ function renderLeaderboard(summary) {
     `;
     body.appendChild(tr);
   });
+
+  return sorted.map(p => p.name);
 }
 
 function renderSummary(summary) {
@@ -530,7 +532,7 @@ function renderSummary(summary) {
   }
 }
 
-function renderRounds(roundsData) {
+function renderRounds(roundsData, leaderboardOrder) {
   const head = document.getElementById("rounds-head");
   head.innerHTML = `<th>Punter</th><th>Bet / Round</th>` +
     roundsData.roundNumbers.map(r => `<th>R${r}</th>`).join("");
@@ -541,7 +543,17 @@ function renderRounds(roundsData) {
   const body = document.getElementById("rounds-body");
   body.innerHTML = "";
 
-  roundsData.punters.forEach(p => {
+  let punters = roundsData.punters;
+  if (leaderboardOrder && leaderboardOrder.length) {
+    const orderIndex = new Map(leaderboardOrder.map((name, i) => [name, i]));
+    punters = [...punters].sort((a, b) => {
+      const ai = orderIndex.has(a.name) ? orderIndex.get(a.name) : Infinity;
+      const bi = orderIndex.has(b.name) ? orderIndex.get(b.name) : Infinity;
+      return ai - bi;
+    });
+  }
+
+  punters.forEach(p => {
     const cells = p.rounds.map(v =>
       (v === null || v === undefined || v === "") ? `<td class="empty-cell">—</td>` : `<td>${money(v)}</td>`
     ).join("");
@@ -573,8 +585,8 @@ function renderWorkbook(workbook, sourceLabel) {
     const roundsData = parseRoundsSheet(roundsRows);
 
     renderSummary(summary);
-    renderLeaderboard(summary);
-    renderRounds(roundsData);
+    const leaderboardOrder = renderLeaderboard(summary);
+    renderRounds(roundsData, leaderboardOrder);
 
     if (sourceLabel) document.getElementById("file-status").textContent = sourceLabel;
     document.getElementById("status-dot").className = "status-dot";
