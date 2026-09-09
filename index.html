@@ -173,6 +173,13 @@
   .rank.gold { background: #4a3b12; color: #ffd66b; }
   .rank.silver { background: #33383e; color: #d4d9dd; }
   .rank.bronze { background: #3b2416; color: #e0a06b; }
+  .rank.poo {
+    background: transparent;
+    width: auto;
+    height: auto;
+    font-size: 22px;
+    line-height: 1;
+  }
   .name-cell { font-weight: 600; }
   .pct-pos { color: var(--pos); font-weight: 600; }
   .pct-neg { color: var(--neg); font-weight: 600; }
@@ -502,7 +509,7 @@ function renderLeaderboard(summary) {
     const rankLabel = isLast ? "\ud83d\udca9" : (i + 1);
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="name-cell" data-label="Punter"><span class="rank ${rankClass(i)}">${rankLabel}</span>${p.name}</td>
+      <td class="name-cell" data-label="Punter"><span class="rank ${isLast ? "poo" : rankClass(i)}">${rankLabel}</span>${p.name}</td>
       <td data-label="Total Bet">${money(p.bet)}</td>
       <td data-label="Total Return">${money(p.ret)}</td>
       <td class="${pctClass}" data-label="% Return">${pct(p.pct)}</td>
