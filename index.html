@@ -498,9 +498,11 @@ function renderLeaderboard(summary) {
   sorted.forEach((p, i) => {
     const pctVal = Number(p.pct);
     const pctClass = pctVal >= 1 ? "pct-pos" : "pct-neg";
+    const isLast = i === sorted.length - 1;
+    const rankLabel = isLast ? "\ud83d\udca9" : (i + 1);
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="name-cell" data-label="Punter"><span class="rank ${rankClass(i)}">${i + 1}</span>${p.name}</td>
+      <td class="name-cell" data-label="Punter"><span class="rank ${rankClass(i)}">${rankLabel}</span>${p.name}</td>
       <td data-label="Total Bet">${money(p.bet)}</td>
       <td data-label="Total Return">${money(p.ret)}</td>
       <td class="${pctClass}" data-label="% Return">${pct(p.pct)}</td>
