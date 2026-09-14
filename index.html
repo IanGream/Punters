@@ -447,6 +447,11 @@ function parseSummarySheet(rows) {
 }
 
 function parseRoundsSheet(rows) {
+  // "Sportsbet Balance" row gives the current balance held in the Sportsbet account
+  const sbIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.toLowerCase().includes("sportsbet balance"));
+  let sportsbetBalance = null;
+  if (sbIdx !== -1) sportsbetBalance = rows[sbIdx][1];
+
   // "Bets up to Round" row gives the latest round with data
   const upToIdx = findRowIndex(rows, 0, v => typeof v === "string" && v.toLowerCase().includes("bets up to round"));
   let upToRound = null;
@@ -489,7 +494,7 @@ function parseRoundsSheet(rows) {
     }
     punters.push(entry);
   }
-  return { roundNumbers: visibleCols.map(r => r.round), punters, totals, upToRound };
+  return { roundNumbers: visibleCols.map(r => r.round), punters, totals, upToRound, sportsbetBalance };
 }
 
 function renderLeaderboard(summary) {
@@ -520,9 +525,9 @@ function renderLeaderboard(summary) {
   return sorted.map(p => p.name);
 }
 
-function renderSummary(summary) {
+function renderSummary(summary, sportsbetBalance) {
   const head = document.getElementById("summary-head");
-  head.innerHTML = `<th>Total Bet</th><th>Total Return</th><th>% Return</th>`;
+  head.innerHTML = `<th>Sportsbet Balance</th><th>Total Bet</th><th>Total Return</th><th>% Return</th>`;
 
   const body = document.getElementById("summary-body");
   body.innerHTML = "";
@@ -534,6 +539,7 @@ function renderSummary(summary) {
     const tr = document.createElement("tr");
     tr.className = "total-row";
     tr.innerHTML = `
+      <td data-label="Sportsbet Balance">${money(sportsbetBalance)}</td>
       <td data-label="Total Bet">${money(t.bet)}</td>
       <td data-label="Total Return">${money(t.ret)}</td>
       <td class="${tPctClass}" data-label="% Return">${pct(t.pct)}</td>`;
@@ -593,7 +599,7 @@ function renderWorkbook(workbook, sourceLabel) {
     const summary = parseSummarySheet(summaryRows);
     const roundsData = parseRoundsSheet(roundsRows);
 
-    renderSummary(summary);
+    renderSummary(summary, roundsData.sportsbetBalance);
     const leaderboardOrder = renderLeaderboard(summary);
     renderRounds(roundsData, leaderboardOrder);
 
